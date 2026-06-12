@@ -1,10 +1,10 @@
-import { Controller, Get } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { LeadsService } from './leads.service';
+import { Controller, Get } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { LeadsService } from "./leads.service";
 
 // Real platform telemetry. Every value here is measured/queried — nothing is
 // simulated. The frontend TelemetryWidget polls this endpoint.
-@Controller('api/metrics')
+@Controller("metrics")
 export class MetricsController {
   private readonly startedAt = Date.now();
 
@@ -23,7 +23,7 @@ export class MetricsController {
       processUptimeSeconds: Math.round((Date.now() - this.startedAt) / 1000),
       totalLeads,
       activeVerticals: 4,
-      dbDialect: this.config.get<string>('DB_DIALECT') || 'sqlite',
+      dbDialect: this.config.get<string>("DB_DIALECT") || "sqlite",
     };
   }
 }
