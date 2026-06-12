@@ -1,3 +1,10 @@
+// Sequelize loads the Postgres driver via a dynamic `require('pg')` that
+// Vercel's dependency tracer can't follow, so it gets dropped from the
+// serverless bundle ("Please install pg package manually"). Importing the
+// drivers here — in the module every entry (api/index.ts and main.ts) loads —
+// forces them and their dependency tree into the traced bundle.
+import 'pg';
+import 'pg-hstore';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';

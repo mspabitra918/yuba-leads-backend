@@ -1,13 +1,6 @@
 import { NestFactory } from "@nestjs/core";
 import type { IncomingMessage, ServerResponse } from "http";
 
-// Sequelize loads the Postgres driver via a dynamic `require('pg')` that
-// Vercel's dependency tracer can't follow, so it gets omitted from the
-// serverless bundle ("Please install pg package manually"). Importing the
-// drivers statically here forces them into the traced node_modules.
-import "pg";
-import "pg-hstore";
-
 // Import from the compiled output (produced by `nest build`) so the TypeScript
 // decorator metadata required by NestJS dependency injection is preserved.
 // The Vercel build runs `npm run build` first (see vercel.json), and the
