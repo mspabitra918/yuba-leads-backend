@@ -4,7 +4,29 @@ require('dotenv').config();
 
 const dialect = process.env.DB_DIALECT || 'sqlite';
 
+// Hosted Postgres (Supabase/Heroku/RDS) requires SSL; a local Postgres does not.
+function needsSsl(url) {
+  try {
+    const host = new URL(url).hostname;
+    return host !== 'localhost' && host !== '127.0.0.1';
+  } catch {
+    return true;
+  }
+}
+
 function buildConfig() {
+  // Prefer a full connection string when provided (e.g. Postgres on a host).
+  if (process.env.DATABASE_URL) {
+    return {
+      url: process.env.DATABASE_URL,
+      dialect: 'postgres',
+      logging: false,
+      ...(needsSsl(process.env.DATABASE_URL)
+        ? { dialectOptions: { ssl: { require: true, rejectUnauthorized: false } } }
+        : {}),
+    };
+  }
+
   if (dialect === 'sqlite') {
     return {
       dialect: 'sqlite',

@@ -11,11 +11,7 @@ import { LeadsModule } from './leads/leads.module';
     SequelizeModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
-        const dialect = (config.get<string>('DB_DIALECT') ||
-          'sqlite') as Dialect;
-
         const base = {
-          dialect,
           models: [Lead],
           autoLoadModels: true,
           // Migrations (sequelize-cli) are authoritative. Set DB_SYNC=true
@@ -24,15 +20,44 @@ import { LeadsModule } from './leads/leads.module';
           logging: false,
         };
 
+        // Prefer a full connection string when provided (e.g. Postgres on a host).
+        const url = config.get<string>('DATABASE_URL');
+        if (url) {
+          let needsSsl = true;
+          try {
+            const host = new URL(url).hostname;
+            needsSsl = host !== 'localhost' && host !== '127.0.0.1';
+          } catch {
+            needsSsl = true;
+          }
+          return {
+            ...base,
+            uri: url,
+            dialect: 'postgres' as Dialect,
+            ...(needsSsl
+              ? {
+                  dialectOptions: {
+                    ssl: { require: true, rejectUnauthorized: false },
+                  },
+                }
+              : {}),
+          };
+        }
+
+        const dialect = (config.get<string>('DB_DIALECT') ||
+          'sqlite') as Dialect;
+
         if (dialect === 'sqlite') {
           return {
             ...base,
+            dialect,
             storage: config.get<string>('DB_STORAGE') || './yuba-leads.sqlite',
           };
         }
 
         return {
           ...base,
+          dialect,
           host: config.get<string>('DB_HOST') || '127.0.0.1',
           port: Number(config.get('DB_PORT')) || 5432,
           database: config.get<string>('DB_NAME') || 'yuba_leads',
